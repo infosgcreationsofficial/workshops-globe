@@ -9,14 +9,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a1628;
-      --panel: #0f1c2e;
-      --panel-border: #1e2d45;
+      --bg: #e8f1f8;
+      --panel: #ffffff;
+      --panel-border: #d0e0ef;
       --accent: #e11d48;
       --accent-soft: #fb7185;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
-      --upcoming: #22c55e;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --upcoming: #16a34a;
+      --globe-bg: #c5dcec;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,12 +33,15 @@
     .app {
       display: flex;
       height: 100vh;
+      position: relative;
     }
 
+    /* Globe area */
     .globe-wrap {
       flex: 1;
       position: relative;
-      background: radial-gradient(ellipse at center, #0f2744 0%, #0a1628 70%);
+      background: radial-gradient(ellipse at center, #d6eaf8 0%, #b8d4ea 60%, #9fc4e0 100%);
+      min-width: 0;
     }
 
     #globeViz {
@@ -45,20 +49,20 @@
       height: 100%;
     }
 
+    /* Search */
     .search-box {
       position: absolute;
-      top: 18px;
-      left: 20px;
+      top: 16px;
+      left: 16px;
       z-index: 15;
       display: flex;
       align-items: center;
-      background: rgba(15, 28, 46, 0.92);
+      background: rgba(255,255,255,0.95);
       border: 1px solid var(--panel-border);
       border-radius: 12px;
       padding: 10px 14px;
-      width: 260px;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
-      backdrop-filter: blur(12px);
+      width: min(280px, calc(100% - 80px));
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
 
     .search-box svg {
@@ -81,6 +85,34 @@
 
     .search-box input::placeholder { color: var(--text-muted); }
 
+    /* Toggle sidebar button */
+    .sidebar-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 20;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .sidebar-toggle:hover { background: #f1f5f9; }
+
+    .sidebar-toggle svg {
+      width: 20px;
+      height: 20px;
+      color: var(--text);
+    }
+
+    /* Info popup */
     .info-card {
       position: absolute;
       z-index: 16;
@@ -90,7 +122,7 @@
       padding: 14px 16px;
       min-width: 200px;
       max-width: 260px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.18);
       display: none;
       animation: fadeIn 0.18s ease;
     }
@@ -127,13 +159,33 @@
       color: #64748b;
     }
 
+    .info-card .status-badge {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .info-card .status-badge.completed {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .info-card .status-badge.upcoming {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    /* Location pins */
     .map-pin {
       width: 28px;
       height: 40px;
       cursor: pointer;
       transform: translate(-50%, -100%);
       transition: transform 0.15s ease;
-      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.4));
+      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
     }
 
     .map-pin:hover {
@@ -141,27 +193,36 @@
     }
 
     .map-pin.active {
-      transform: translate(-50%, -100%) scale(1.2);
-      filter: drop-shadow(0 4px 8px rgba(225,29,72,0.55));
+      transform: translate(-50%, -100%) scale(1.22);
+      filter: drop-shadow(0 4px 8px rgba(225,29,72,0.5));
     }
 
-    .map-pin svg {
-      width: 100%;
-      height: 100%;
-    }
+    .map-pin svg { width: 100%; height: 100%; }
 
+    /* Sidebar – collapsible */
     .sidebar {
-      width: 320px;
+      width: 340px;
       background: var(--panel);
       border-left: 1px solid var(--panel-border);
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
+      transition: transform 0.3s ease, width 0.3s ease;
+      z-index: 25;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.06);
+    }
+
+    .sidebar.collapsed {
+      transform: translateX(100%);
+      width: 0;
+      border: none;
+      overflow: hidden;
     }
 
     .sidebar-header {
       padding: 18px 18px 10px;
       border-bottom: 1px solid var(--panel-border);
+      flex-shrink: 0;
     }
 
     .sidebar-header h2 {
@@ -179,7 +240,7 @@
     .tab {
       flex: 1;
       text-align: center;
-      padding: 7px 0;
+      padding: 8px 0;
       font-size: 12.5px;
       font-weight: 600;
       color: var(--text-muted);
@@ -192,38 +253,38 @@
     }
 
     .tab.active {
-      background: rgba(225, 29, 72, 0.15);
-      color: var(--accent-soft);
+      background: rgba(225, 29, 72, 0.1);
+      color: var(--accent);
     }
 
     .tab:hover:not(.active) {
-      background: rgba(255,255,255,0.04);
+      background: #f1f5f9;
       color: var(--text);
     }
 
     .list-wrap {
       flex: 1;
       overflow-y: auto;
-      padding: 8px 10px 16px;
+      padding: 8px 10px 20px;
     }
 
     .list-wrap::-webkit-scrollbar { width: 5px; }
     .list-wrap::-webkit-scrollbar-track { background: transparent; }
-    .list-wrap::-webkit-scrollbar-thumb { background: #2a3b55; border-radius: 3px; }
+    .list-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
     .workshop-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 9px 10px;
-      border-radius: 9px;
+      padding: 10px 10px;
+      border-radius: 10px;
       cursor: pointer;
       transition: background 0.15s;
-      margin-bottom: 1px;
+      margin-bottom: 2px;
     }
 
-    .workshop-item:hover { background: rgba(255,255,255,0.04); }
-    .workshop-item.active { background: rgba(225, 29, 72, 0.12); }
+    .workshop-item:hover { background: #f1f5f9; }
+    .workshop-item.active { background: rgba(225, 29, 72, 0.08); }
 
     .workshop-item .pin-icon {
       width: 18px;
@@ -244,206 +305,65 @@
     }
 
     .workshop-item .date {
-      font-size: 11px;
+      font-size: 11.5px;
       color: var(--text-muted);
-      margin-top: 1px;
+      margin-top: 2px;
     }
 
-    .workshop-item .actions {
-      display: none;
-      gap: 4px;
-    }
-
-    .workshop-item:hover .actions,
-    .workshop-item.active .actions {
-      display: flex;
-    }
-
-    .workshop-item .actions button {
-      background: rgba(255,255,255,0.08);
-      border: none;
-      color: var(--text-muted);
-      width: 24px;
-      height: 24px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s;
-    }
-
-    .workshop-item .actions button:hover {
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-    }
-
-    .workshop-item .actions .del:hover {
-      background: rgba(225, 29, 72, 0.3);
-      color: #fb7185;
+    .workshop-item.online .pin-icon {
+      opacity: 0.5;
     }
 
     .empty-state {
       text-align: center;
-      padding: 36px 16px;
+      padding: 40px 16px;
       color: var(--text-muted);
       font-size: 13px;
-    }
-
-    .toolbar {
-      padding: 10px 12px;
-      border-top: 1px solid var(--panel-border);
-      display: flex;
-      gap: 8px;
-    }
-
-    .toolbar button {
-      flex: 1;
-      padding: 9px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 12.5px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s;
-    }
-
-    .btn-add {
-      background: var(--accent);
-      color: #fff;
-    }
-    .btn-add:hover { background: #be123c; }
-
-    .btn-export {
-      background: rgba(255,255,255,0.07);
-      color: var(--text);
-    }
-    .btn-export:hover { background: rgba(255,255,255,0.12); }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 50;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-    }
-
-    .modal-overlay.visible { display: flex; }
-
-    .modal {
-      background: var(--panel);
-      border: 1px solid var(--panel-border);
-      border-radius: 14px;
-      width: 360px;
-      max-width: 94vw;
-      padding: 22px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
-    }
-
-    .modal h3 {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-
-    .modal label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-      margin-top: 12px;
-    }
-
-    .modal label:first-of-type { margin-top: 0; }
-
-    .modal input, .modal select {
-      width: 100%;
-      padding: 9px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--panel-border);
-      background: rgba(0,0,0,0.25);
-      color: var(--text);
-      font-size: 13.5px;
-      font-family: inherit;
-      outline: none;
-    }
-
-    .modal input:focus, .modal select:focus {
-      border-color: var(--accent);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 20px;
-    }
-
-    .modal-actions button {
-      flex: 1;
-      padding: 10px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-    }
-
-    .modal-actions .save {
-      background: var(--accent);
-      color: #fff;
-    }
-    .modal-actions .cancel {
-      background: rgba(255,255,255,0.08);
-      color: var(--text);
     }
 
     .hint {
       position: absolute;
       bottom: 14px;
-      left: 18px;
+      left: 16px;
       font-size: 11.5px;
-      color: var(--text-muted);
-      background: rgba(15, 28, 46, 0.8);
-      padding: 5px 11px;
-      border-radius: 7px;
+      color: #475569;
+      background: rgba(255,255,255,0.85);
+      padding: 5px 12px;
+      border-radius: 8px;
       z-index: 10;
       pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: #1e293b;
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 13px;
-      z-index: 100;
-      transition: transform 0.3s ease;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: min(320px, 88vw);
+        max-width: 340px;
+      }
+
+      .sidebar.collapsed {
+        transform: translateX(100%);
+      }
+
+      .search-box {
+        width: calc(100% - 70px);
+      }
+
+      .hint {
+        display: none;
+      }
     }
 
-    .toast.show { transform: translateX(-50%) translateY(0); }
-
-    @media (max-width: 700px) {
-      .app { flex-direction: column; }
+    @media (max-width: 480px) {
       .sidebar {
         width: 100%;
-        height: 42vh;
-        border-left: none;
-        border-top: 1px solid var(--panel-border);
+        max-width: 100%;
       }
-      .globe-wrap { height: 58vh; }
-      .search-box { width: calc(100% - 40px); }
     }
   </style>
 </head>
@@ -458,18 +378,25 @@
         <input type="text" id="searchInput" placeholder="Search workshops…" autocomplete="off" />
       </div>
 
+      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle workshop list" aria-label="Toggle workshop list">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       <div id="globeViz"></div>
 
       <div class="info-card" id="infoCard">
         <button class="close" id="closeCard">&times;</button>
         <h3 id="cardTitle"></h3>
         <div class="date" id="cardDate"></div>
+        <div class="status-badge" id="cardStatus"></div>
       </div>
 
       <div class="hint">Drag to rotate · Scroll to zoom · Click a pin</div>
     </div>
 
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h2>Workshops</h2>
         <div class="tabs">
@@ -478,39 +405,8 @@
         </div>
       </div>
       <div class="list-wrap" id="workshopList"></div>
-      <div class="toolbar">
-        <button class="btn-add" id="btnAdd">+ Add Workshop</button>
-        <button class="btn-export" id="btnExport" title="Copy data so you can paste it into the code">Export Data</button>
-      </div>
     </aside>
   </div>
-
-  <div class="modal-overlay" id="modal">
-    <div class="modal">
-      <h3 id="modalTitle">Add Workshop</h3>
-      <label>Name / City</label>
-      <input type="text" id="fName" placeholder="e.g. New York" />
-      <label>Country</label>
-      <input type="text" id="fCountry" placeholder="e.g. USA" />
-      <label>Date</label>
-      <input type="text" id="fDate" placeholder="e.g. 12–14 Jul 2024" />
-      <label>Latitude</label>
-      <input type="number" id="fLat" step="0.01" placeholder="e.g. 40.71" />
-      <label>Longitude</label>
-      <input type="number" id="fLng" step="0.01" placeholder="e.g. -74.01" />
-      <label>Status</label>
-      <select id="fStatus">
-        <option value="completed">Completed</option>
-        <option value="upcoming">Upcoming</option>
-      </select>
-      <div class="modal-actions">
-        <button class="cancel" id="btnCancel">Cancel</button>
-        <button class="save" id="btnSave">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
 
   <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
   <script src="https://unpkg.com/globe.gl@2.31.0/dist/globe.gl.min.js"></script>
@@ -518,61 +414,65 @@
   <script>
     // ============================================================
     //  EDIT WORKSHOP DATA HERE
-    //  This is the only place you need to change permanent data.
-    //  After using Add/Edit/Delete on the page, click "Export Data"
-    //  and paste the result back here to make changes permanent.
+    //  To add a new workshop: copy a line and change the values.
+    //  status must be "completed" or "upcoming"
+    //  For Online workshops set lat/lng to null (no pin on globe)
     // ============================================================
-    const DEFAULT_WORKSHOPS = [
-      { id: 1,  name: "Monterey / Pebble Beach", country: "USA",          lat: 36.60,  lng: -121.89, date: "15–17 Sep 2023", status: "completed" },
-      { id: 2,  name: "Boston / Cape Cod",       country: "USA",          lat: 41.70,  lng: -70.30,  date: "7–9 Jun 2024",   status: "completed" },
-      { id: 3,  name: "Seattle",                 country: "USA",          lat: 47.61,  lng: -122.33, date: "17–19 May 2024", status: "completed" },
-      { id: 4,  name: "Austin",                  country: "USA",          lat: 30.27,  lng: -97.74,  date: "3–5 May 2024",   status: "completed" },
-      { id: 5,  name: "Atlanta",                 country: "USA",          lat: 33.75,  lng: -84.39,  date: "19–21 Apr 2024", status: "completed" },
-      { id: 6,  name: "Denver",                  country: "USA",          lat: 39.74,  lng: -104.99, date: "5–7 Apr 2024",   status: "completed" },
-      { id: 7,  name: "El Paso",                 country: "USA",          lat: 31.76,  lng: -106.49, date: "22–24 Mar 2024", status: "completed" },
-      { id: 8,  name: "Phoenix",                 country: "USA",          lat: 33.45,  lng: -112.07, date: "8–10 Mar 2024",  status: "completed" },
-      { id: 9,  name: "Chicago",                 country: "USA",          lat: 41.88,  lng: -87.63,  date: "23–25 Feb 2024", status: "completed" },
-      { id: 10, name: "New York",                country: "USA",          lat: 40.71,  lng: -74.01,  date: "12–14 Jul 2024", status: "completed" },
-      { id: 11, name: "Washington DC",           country: "USA",          lat: 38.91,  lng: -77.04,  date: "28–30 Jun 2024", status: "completed" },
-      { id: 12, name: "Toronto",                 country: "Canada",       lat: 43.65,  lng: -79.38,  date: "14–16 Jun 2024", status: "completed" },
-      { id: 13, name: "St. John's",              country: "Canada",       lat: 47.56,  lng: -52.71,  date: "31 May–2 Jun 2024", status: "completed" },
-      { id: 14, name: "Whistler",                country: "Canada",       lat: 50.12,  lng: -122.95, date: "17–19 May 2024", status: "completed" },
-      { id: 15, name: "Iceland",                 country: "Iceland",      lat: 64.15,  lng: -21.94,  date: "3–5 May 2024",   status: "completed" },
-      { id: 16, name: "Copenhagen",              country: "Denmark",      lat: 55.68,  lng: 12.57,   date: "19–21 Apr 2024", status: "completed" },
-      { id: 17, name: "Berlin",                  country: "Germany",      lat: 52.52,  lng: 13.40,   date: "5–7 Apr 2024",   status: "completed" },
-      { id: 18, name: "Frötuna / Uppsala",       country: "Sweden",       lat: 59.86,  lng: 17.64,   date: "22–24 Mar 2024", status: "completed" },
-      { id: 19, name: "International Conference",country: "UK",           lat: 51.51,  lng: -0.13,   date: "8–10 Mar 2024",  status: "completed" },
-      { id: 20, name: "Jamaica",                 country: "West Indies",  lat: 18.11,  lng: -77.30,  date: "23–25 Feb 2024", status: "completed" },
-      { id: 21, name: "Chennai",                 country: "India",        lat: 13.08,  lng: 80.27,   date: "9–11 Feb 2024",  status: "completed" },
-      { id: 22, name: "Gaborone",                country: "Botswana",     lat: -24.63, lng: 25.91,   date: "26–28 Jan 2024", status: "completed" },
-      { id: 23, name: "Johannesburg",            country: "South Africa", lat: -26.20, lng: 28.04,   date: "12–14 Jan 2024", status: "completed" },
-      { id: 24, name: "Sydney",                  country: "Australia",    lat: -33.87, lng: 151.21,  date: "15–17 Dec 2023", status: "completed" },
-      { id: 25, name: "Melbourne",               country: "Australia",    lat: -37.81, lng: 144.96,  date: "1–3 Dec 2023",   status: "completed" },
-      { id: 26, name: "Auckland",                country: "New Zealand",  lat: -36.85, lng: 174.76,  date: "17–19 Nov 2023", status: "completed" },
-      { id: 27, name: "Vancouver",               country: "Canada",       lat: 49.28,  lng: -123.12, date: "20–22 Sep 2026", status: "upcoming" },
-      { id: 28, name: "London",                  country: "UK",           lat: 51.51,  lng: -0.13,   date: "11–13 Oct 2026", status: "upcoming" },
-      { id: 29, name: "Cape Town",               country: "South Africa", lat: -33.92, lng: 18.42,   date: "8–10 Nov 2026",  status: "upcoming" },
+    const WORKSHOPS = [
+      { id: 1,  name: "Wareham, Dorset",              country: "England",        lat: 50.686,  lng: -2.110,  date: "14 May 2023",           status: "completed" },
+      { id: 2,  name: "Northumberland",               country: "England",        lat: 55.208,  lng: -2.078,  date: "29–31 March 2023",      status: "completed" },
+      { id: 3,  name: "Thessaloniki",                 country: "Greece",         lat: 40.641,  lng: 22.935,  date: "29 June–1 July 2023",   status: "completed" },
+      { id: 4,  name: "Market Harborough",            country: "England",        lat: 52.478,  lng: -0.921,  date: "19–21 July 2023",       status: "completed" },
+      { id: 5,  name: "Northumberland",               country: "England",        lat: 55.208,  lng: -2.078,  date: "26–28 July 2023",       status: "completed" },
+      { id: 6,  name: "Northumberland",               country: "England",        lat: 55.208,  lng: -2.078,  date: "02 Oct 2023",           status: "completed" },
+      { id: 7,  name: "Northumberland",               country: "England",        lat: 55.208,  lng: -2.078,  date: "2–6 October 2023",      status: "completed" },
+      { id: 8,  name: "Market Harborough",            country: "England",        lat: 52.478,  lng: -0.921,  date: "1–3 November 2023",     status: "completed" },
+      { id: 9,  name: "Seattle, Washington",          country: "USA",            lat: 47.606,  lng: -122.332,date: "2–4 October 2024",      status: "completed" },
+      { id: 10, name: "Northumberland",               country: "England",        lat: 55.208,  lng: -2.078,  date: "24–26 November 2024",   status: "completed" },
+      { id: 11, name: "Boston, Cape Cod/Bourne",      country: "USA",            lat: 41.739,  lng: -70.607, date: "10–14 March 2025",      status: "completed" },
+      { id: 12, name: "Austin, Texas",                country: "USA",            lat: 30.267,  lng: -97.743, date: "18–19 March 2025",      status: "completed" },
+      { id: 13, name: "El Paso, Texas",               country: "USA",            lat: 31.761,  lng: -106.485,date: "21–23 March 2025",      status: "completed" },
+      { id: 14, name: "Chandler, Arizona",            country: "USA",            lat: 33.306,  lng: -111.841,date: "28–30 March 2025",      status: "completed" },
+      { id: 15, name: "Seattle, Washington",          country: "USA",            lat: 47.606,  lng: -122.332,date: "5–7 April 2025",        status: "completed" },
+      { id: 16, name: "Toronto",                      country: "Canada",         lat: 43.653,  lng: -79.383, date: "21–25 April 2025",      status: "completed" },
+      { id: 17, name: "Melbourne",                    country: "Australia",      lat: -37.814, lng: 144.963, date: "1–3 May 2025",          status: "completed" },
+      { id: 18, name: "Sydney",                       country: "Australia",      lat: -33.868, lng: 151.209, date: "8–10 May 2025",         status: "completed" },
+      { id: 19, name: "Auckland",                     country: "New Zealand",    lat: -36.849, lng: 174.763, date: "14–16 May 2025",        status: "completed" },
+      { id: 20, name: "Botswana",                     country: "Africa",         lat: -24.655, lng: 25.909,  date: "25–27 June 2025",       status: "completed" },
+      { id: 21, name: "Johannesburg",                 country: "South Africa",   lat: -26.204, lng: 28.047,  date: "7–9 July 2025",         status: "completed" },
+      { id: 22, name: "Ealing Broadway, London",      country: "UK",             lat: 51.513,  lng: -0.303,  date: "15–19 September 2025",  status: "completed" },
+      { id: 23, name: "Monterey / Pebble Beach",      country: "USA",            lat: 36.600,  lng: -121.895,date: "20–24 October 2025",    status: "completed" },
+      { id: 24, name: "Monterey / Pebble Beach",      country: "USA",            lat: 36.600,  lng: -121.895,date: "26–30 October 2025",    status: "completed" },
+      { id: 25, name: "Online – Zoom",                country: "",               lat: null,    lng: null,    date: "4–5 October 2025",      status: "completed" },
+      { id: 26, name: "El Paso",                      country: "USA",            lat: 31.761,  lng: -106.485,date: "3–7 November 2025",     status: "completed" },
+      { id: 27, name: "København",                    country: "Denmark",        lat: 55.676,  lng: 12.568,  date: "4–8 February 2026",     status: "completed" },
+      { id: 28, name: "Iceland",                      country: "Iceland",        lat: 64.147,  lng: -21.942, date: "16–20 February 2026",   status: "completed" },
+      { id: 29, name: "Toronto",                      country: "Canada",         lat: 43.653,  lng: -79.383, date: "2–6 March 2026",        status: "completed" },
+      { id: 30, name: "St. John’s, Newfoundland",     country: "Canada",         lat: 47.561,  lng: -52.713, date: "9–13 March 2026",       status: "completed" },
+      { id: 31, name: "Boston, Cape Cod",             country: "USA",            lat: 41.739,  lng: -70.607, date: "15–21 March 2026",      status: "completed" },
+      { id: 32, name: "Boston, Cape Cod",             country: "USA",            lat: 41.739,  lng: -70.607, date: "23–27 March 2026",      status: "completed" },
+      { id: 33, name: "Frötuna, Uppsala",             country: "Sweden",         lat: 59.906,  lng: 17.856,  date: "15–17 April 2026",      status: "completed" },
+      { id: 34, name: "Online – Zoom",                country: "",               lat: null,    lng: null,    date: "7–8 July 2026",         status: "completed" },
+      { id: 35, name: "Online – Zoom",                country: "",               lat: null,    lng: null,    date: "11–12 July 2026",       status: "completed" },
+      { id: 36, name: "Smyrna, Atlanta, Georgia",     country: "USA",            lat: 33.884,  lng: -84.514, date: "9–13 September 2026",   status: "completed" },
+      { id: 37, name: "Denver, Colorado",             country: "USA",            lat: 39.739,  lng: -104.990,date: "21–25 September 2026",  status: "completed" },
+      { id: 38, name: "Sunshine Coast, Queensland",   country: "Australia",      lat: -26.650, lng: 153.067, date: "11–17 October 2026",    status: "upcoming" },
+      { id: 39, name: "Whistler, British Columbia",   country: "Canada",         lat: 50.116,  lng: -122.957,date: "28 September–2 October 2026", status: "upcoming" },
+      { id: 40, name: "Thessaloniki",                 country: "Greece",         lat: 40.641,  lng: 22.935,  date: "14–18 November 2026",   status: "upcoming" },
+      { id: 41, name: "Copenhagen",                   country: "Denmark",        lat: 55.676,  lng: 12.568,  date: "19–23 May 2027",        status: "upcoming" },
+      { id: 42, name: "Copenhagen",                   country: "Denmark",        lat: 55.676,  lng: 12.568,  date: "9–15 May 2027",         status: "upcoming" },
     ];
 
-    const STORAGE_KEY = "mw_workshops_v2";
-
-    function loadWorkshops() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch (e) {}
-      return JSON.parse(JSON.stringify(DEFAULT_WORKSHOPS));
-    }
-
-    function saveWorkshops() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(workshops));
-    }
-
-    let workshops = loadWorkshops();
+    // ─────────────────────────────────────────────
+    // State
+    // ─────────────────────────────────────────────
     let currentTab = "completed";
     let activeId = null;
-    let editId = null;
+    let sidebarOpen = true;
 
+    // ─────────────────────────────────────────────
+    // Pin SVG
+    // ─────────────────────────────────────────────
     function pinSVG(color = "#e11d48") {
       return `
         <svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg">
@@ -581,22 +481,26 @@
         </svg>`;
     }
 
+    // ─────────────────────────────────────────────
+    // Globe (only workshops with lat/lng)
+    // ─────────────────────────────────────────────
     const globeContainer = document.getElementById("globeViz");
+    const pinData = WORKSHOPS.filter(w => w.lat !== null && w.lng !== null);
 
     const globe = Globe()
       .globeImageUrl("//unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
       .bumpImageUrl("//unpkg.com/three-globe/example/img/earth-topology.png")
-      .backgroundImageUrl("//unpkg.com/three-globe/example/img/night-sky.png")
+      .backgroundColor("rgba(0,0,0,0)")
       .showAtmosphere(true)
-      .atmosphereColor("#3a7ca5")
-      .atmosphereAltitude(0.18)
-      .htmlElementsData(workshops)
+      .atmosphereColor("#7eb8e0")
+      .atmosphereAltitude(0.15)
+      .htmlElementsData(pinData)
       .htmlLat("lat")
       .htmlLng("lng")
       .htmlElement(d => {
         const el = document.createElement("div");
         el.className = "map-pin" + (activeId === d.id ? " active" : "");
-        el.innerHTML = pinSVG(d.status === "upcoming" ? "#22c55e" : "#e11d48");
+        el.innerHTML = pinSVG(d.status === "upcoming" ? "#16a34a" : "#e11d48");
         el.style.pointerEvents = "auto";
         el.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -609,7 +513,7 @@
       })
       (globeContainer);
 
-    globe.pointOfView({ lat: 20, lng: -30, altitude: 2.2 }, 0);
+    globe.pointOfView({ lat: 25, lng: 10, altitude: 2.0 }, 0);
 
     const resize = () => {
       const { width, height } = globeContainer.getBoundingClientRect();
@@ -619,26 +523,42 @@
     resize();
 
     function refreshGlobe() {
-      globe.htmlElementsData([...workshops]);
+      globe.htmlElementsData([...pinData]);
     }
 
+    // ─────────────────────────────────────────────
+    // Select / Popup
+    // ─────────────────────────────────────────────
     function selectWorkshop(id) {
-      const w = workshops.find(x => x.id === id);
+      const w = WORKSHOPS.find(x => x.id === id);
       if (!w) return;
       activeId = id;
-      globe.pointOfView({ lat: w.lat, lng: w.lng, altitude: 1.55 }, 1100);
+
+      if (w.lat !== null && w.lng !== null) {
+        globe.pointOfView({ lat: w.lat, lng: w.lng, altitude: 1.5 }, 1100);
+      }
+
       showInfoCard(w);
       refreshGlobe();
       renderList();
+
+      // On mobile, optionally close sidebar after selection
+      if (window.innerWidth <= 768) {
+        // keep open so user can still browse
+      }
     }
 
     function showInfoCard(w) {
       const card = document.getElementById("infoCard");
-      document.getElementById("cardTitle").textContent = w.name + ", " + w.country;
+      const title = w.country ? `${w.name}, ${w.country}` : w.name;
+      document.getElementById("cardTitle").textContent = title;
       document.getElementById("cardDate").textContent = w.date;
+      const badge = document.getElementById("cardStatus");
+      badge.textContent = w.status === "upcoming" ? "Upcoming" : "Completed";
+      badge.className = "status-badge " + w.status;
       card.classList.add("visible");
-      card.style.left = "48%";
-      card.style.top = "30%";
+      card.style.left = "45%";
+      card.style.top = "28%";
       card.style.transform = "translateX(-10%)";
     }
 
@@ -649,60 +569,53 @@
       renderList();
     });
 
+    // ─────────────────────────────────────────────
+    // Sidebar list
+    // ─────────────────────────────────────────────
     function renderList() {
       const list = document.getElementById("workshopList");
       const q = document.getElementById("searchInput").value.trim().toLowerCase();
-      let items = workshops.filter(w => w.status === currentTab);
+      let items = WORKSHOPS.filter(w => w.status === currentTab);
 
       if (q) {
         items = items.filter(w =>
           w.name.toLowerCase().includes(q) ||
-          w.country.toLowerCase().includes(q) ||
-          String(w.id).includes(q)
+          (w.country && w.country.toLowerCase().includes(q)) ||
+          String(w.id).includes(q) ||
+          w.date.toLowerCase().includes(q)
         );
       }
+
+      // Sort by date string roughly (newest first for completed, soonest for upcoming)
+      // Simple: keep original order which is roughly chronological
 
       if (items.length === 0) {
         list.innerHTML = '<div class="empty-state">No workshops found</div>';
         return;
       }
 
-      list.innerHTML = items.map(w => `
-        <div class="workshop-item ${activeId === w.id ? "active" : ""}" data-id="${w.id}">
-          <div class="pin-icon">${pinSVG(w.status === "upcoming" ? "#22c55e" : "#e11d48")}</div>
-          <div class="info">
-            <div class="name">${w.name}</div>
-            <div class="date">${w.date}</div>
+      list.innerHTML = items.map(w => {
+        const isOnline = w.lat === null;
+        const color = w.status === "upcoming" ? "#16a34a" : "#e11d48";
+        return `
+          <div class="workshop-item ${activeId === w.id ? "active" : ""} ${isOnline ? "online" : ""}" data-id="${w.id}">
+            <div class="pin-icon">${isOnline ? '🌐' : pinSVG(color)}</div>
+            <div class="info">
+              <div class="name">${w.name}${w.country ? ', ' + w.country : ''}</div>
+              <div class="date">${w.date}</div>
+            </div>
           </div>
-          <div class="actions">
-            <button class="edit" title="Edit" data-id="${w.id}">✎</button>
-            <button class="del" title="Delete" data-id="${w.id}">✕</button>
-          </div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
 
       list.querySelectorAll(".workshop-item").forEach(el => {
-        el.addEventListener("click", (e) => {
-          if (e.target.closest(".actions")) return;
+        el.addEventListener("click", () => {
           selectWorkshop(Number(el.dataset.id));
-        });
-      });
-
-      list.querySelectorAll(".edit").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openModal(Number(btn.dataset.id));
-        });
-      });
-
-      list.querySelectorAll(".del").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          deleteWorkshop(Number(btn.dataset.id));
         });
       });
     }
 
+    // Tabs
     document.querySelectorAll(".tab").forEach(tab => {
       tab.addEventListener("click", () => {
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
@@ -712,107 +625,27 @@
       });
     });
 
+    // Search
     document.getElementById("searchInput").addEventListener("input", renderList);
 
-    function openModal(id = null) {
-      editId = id;
-      const modal = document.getElementById("modal");
-      document.getElementById("modalTitle").textContent = id ? "Edit Workshop" : "Add Workshop";
+    // Sidebar toggle
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("sidebarToggle");
 
-      if (id) {
-        const w = workshops.find(x => x.id === id);
-        document.getElementById("fName").value = w.name;
-        document.getElementById("fCountry").value = w.country;
-        document.getElementById("fDate").value = w.date;
-        document.getElementById("fLat").value = w.lat;
-        document.getElementById("fLng").value = w.lng;
-        document.getElementById("fStatus").value = w.status;
-      } else {
-        document.getElementById("fName").value = "";
-        document.getElementById("fCountry").value = "";
-        document.getElementById("fDate").value = "";
-        document.getElementById("fLat").value = "";
-        document.getElementById("fLng").value = "";
-        document.getElementById("fStatus").value = "upcoming";
-      }
-      modal.classList.add("visible");
-    }
-
-    function closeModal() {
-      document.getElementById("modal").classList.remove("visible");
-      editId = null;
-    }
-
-    document.getElementById("btnAdd").addEventListener("click", () => openModal());
-    document.getElementById("btnCancel").addEventListener("click", closeModal);
-
-    document.getElementById("btnSave").addEventListener("click", () => {
-      const name = document.getElementById("fName").value.trim();
-      const country = document.getElementById("fCountry").value.trim();
-      const date = document.getElementById("fDate").value.trim();
-      const lat = parseFloat(document.getElementById("fLat").value);
-      const lng = parseFloat(document.getElementById("fLng").value);
-      const status = document.getElementById("fStatus").value;
-
-      if (!name || !country || !date || isNaN(lat) || isNaN(lng)) {
-        showToast("Please fill in all fields with valid numbers for lat/lng");
-        return;
-      }
-
-      if (editId) {
-        const w = workshops.find(x => x.id === editId);
-        Object.assign(w, { name, country, date, lat, lng, status });
-        showToast("Workshop updated");
-      } else {
-        const newId = workshops.length ? Math.max(...workshops.map(w => w.id)) + 1 : 1;
-        workshops.push({ id: newId, name, country, date, lat, lng, status });
-        showToast("Workshop added");
-      }
-
-      saveWorkshops();
-      refreshGlobe();
-      renderList();
-      closeModal();
+    toggleBtn.addEventListener("click", () => {
+      sidebarOpen = !sidebarOpen;
+      sidebar.classList.toggle("collapsed", !sidebarOpen);
+      // Give globe a moment to resize
+      setTimeout(resize, 320);
     });
 
-    function deleteWorkshop(id) {
-      if (!confirm("Delete this workshop?")) return;
-      workshops = workshops.filter(w => w.id !== id);
-      if (activeId === id) {
-        activeId = null;
-        document.getElementById("infoCard").classList.remove("visible");
-      }
-      saveWorkshops();
-      refreshGlobe();
-      renderList();
-      showToast("Workshop deleted");
+    // On small screens start with sidebar closed
+    if (window.innerWidth <= 768) {
+      sidebarOpen = false;
+      sidebar.classList.add("collapsed");
     }
 
-    document.getElementById("btnExport").addEventListener("click", () => {
-      const clean = workshops.map(w => ({
-        id: w.id,
-        name: w.name,
-        country: w.country,
-        lat: w.lat,
-        lng: w.lng,
-        date: w.date,
-        status: w.status
-      }));
-      const text = "const DEFAULT_WORKSHOPS = " + JSON.stringify(clean, null, 2) + ";";
-      navigator.clipboard.writeText(text).then(() => {
-        showToast("Data copied! Paste it into the code to make permanent.");
-      }).catch(() => {
-        prompt("Copy this data:", text);
-      });
-    });
-
-    function showToast(msg) {
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      setTimeout(() => t.classList.remove("show"), 2800);
-    }
-
+    // Init
     renderList();
   </script>
 </body>
