@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Martin Warner – World Wide Workshops</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,12 +42,21 @@
       background: radial-gradient(ellipse at center, #d6eaf8 0%, #b8d4ea 60%, #9fc4e0 100%);
       min-width: 0;
       min-height: 0;
+      overflow: hidden;
     }
 
     #globeViz {
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    /* Force all globe HTML pins behind UI */
+    #globeViz > div,
+    #globeViz .map-pin,
+    .scene-container,
+    .html-overlay {
+      z-index: 1 !important;
     }
 
     .loading {
@@ -82,33 +91,49 @@
       position: absolute;
       top: 16px;
       left: 16px;
-      z-index: 30;
+      z-index: 100;
       display: flex;
       align-items: center;
-      background: rgba(255,255,255,0.97);
+      background: rgba(255,255,255,0.98);
       border: 1px solid var(--panel-border);
       border-radius: 12px;
-      padding: 10px 14px;
-      width: min(280px, calc(100% - 80px));
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 8px 12px;
+      width: min(300px, calc(100% - 76px));
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      gap: 8px;
     }
 
-    .search-box svg {
-      width: 17px;
-      height: 17px;
-      color: var(--text-muted);
+    .search-box .search-icon,
+    .search-box .clear-btn {
+      width: 18px;
+      height: 18px;
       flex-shrink: 0;
+      color: var(--text-muted);
     }
+
+    .search-box .clear-btn {
+      display: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      color: #94a3b8;
+      transition: color 0.15s;
+    }
+
+    .search-box .clear-btn:hover { color: var(--text); }
+    .search-box.has-text .clear-btn { display: flex; align-items: center; justify-content: center; }
+    .search-box.has-text .search-icon { display: none; }
 
     .search-box input {
       background: transparent;
       border: none;
       outline: none;
       color: var(--text);
-      font-size: 13.5px;
-      margin-left: 10px;
+      font-size: 14px;
       width: 100%;
       font-family: inherit;
+      min-width: 0;
     }
 
     .search-box input::placeholder { color: var(--text-muted); }
@@ -118,7 +143,7 @@
       position: absolute;
       top: 16px;
       right: 16px;
-      z-index: 40;
+      z-index: 100;
       width: 44px;
       height: 44px;
       border-radius: 12px;
@@ -140,53 +165,62 @@
       color: var(--text);
     }
 
-    /* Info popup */
+    /* Info popup – always on top of pins */
     .info-card {
       position: absolute;
-      z-index: 35;
+      z-index: 90;
       background: #fff;
       color: #0f172a;
-      border-radius: 12px;
-      padding: 14px 16px;
-      min-width: 200px;
-      max-width: 270px;
-      box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+      border-radius: 14px;
+      padding: 16px 18px;
+      min-width: 210px;
+      max-width: 280px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.22);
       display: none;
+      pointer-events: auto;
     }
 
     .info-card.visible { display: block; }
 
     .info-card .close {
       position: absolute;
-      top: 8px;
-      right: 10px;
+      top: 10px;
+      right: 12px;
       background: none;
       border: none;
-      font-size: 18px;
+      font-size: 20px;
       color: #94a3b8;
       cursor: pointer;
       line-height: 1;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
+    .info-card .close:hover { color: #64748b; }
 
     .info-card h3 {
       font-size: 15px;
       font-weight: 700;
-      margin-bottom: 4px;
-      padding-right: 18px;
+      margin-bottom: 6px;
+      padding-right: 22px;
       line-height: 1.3;
     }
 
     .info-card .date {
-      font-size: 12.5px;
+      font-size: 13px;
       color: #64748b;
     }
 
     .info-card .status-badge {
       display: inline-block;
-      margin-top: 8px;
+      margin-top: 10px;
       font-size: 11px;
       font-weight: 600;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 6px;
     }
 
@@ -208,6 +242,7 @@
       transform: translate(-50%, -100%);
       transition: transform 0.15s ease;
       filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+      z-index: 1 !important;
     }
 
     .map-pin:hover {
@@ -231,7 +266,7 @@
       flex-direction: column;
       flex-shrink: 0;
       transition: transform 0.28s ease, margin 0.28s ease;
-      z-index: 25;
+      z-index: 80;
       box-shadow: -4px 0 24px rgba(0,0,0,0.06);
       height: 100%;
     }
@@ -351,7 +386,7 @@
       background: rgba(255,255,255,0.9);
       padding: 5px 12px;
       border-radius: 8px;
-      z-index: 10;
+      z-index: 20;
       pointer-events: none;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
@@ -373,15 +408,16 @@
 
     .error-msg.visible { display: block; }
 
-    /* Mobile */
+    /* ===== MOBILE ===== */
     @media (max-width: 768px) {
       .sidebar {
         position: fixed;
         top: 0;
         right: 0;
         height: 100%;
-        width: min(320px, 90vw);
+        width: min(320px, 92vw);
         margin-right: 0 !important;
+        z-index: 120;
       }
 
       .sidebar.collapsed {
@@ -389,10 +425,40 @@
       }
 
       .search-box {
-        width: calc(100% - 70px);
+        width: calc(100% - 76px);
+        top: 12px;
+        left: 12px;
+      }
+
+      .sidebar-toggle {
+        top: 12px;
+        right: 12px;
+      }
+
+      /* Popup centered near top of globe on mobile – never under pins */
+      .info-card {
+        left: 50% !important;
+        top: 70px !important;
+        transform: translateX(-50%) !important;
+        max-width: calc(100% - 32px);
+        width: auto;
+        min-width: 200px;
       }
 
       .hint { display: none; }
+
+      /* Dim overlay when sidebar open on mobile */
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.35);
+        z-index: 110;
+      }
+
+      .sidebar-overlay.visible {
+        display: block;
+      }
     }
   </style>
 </head>
@@ -405,11 +471,16 @@
         <div>Loading globe…</div>
       </div>
 
-      <div class="search-box">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <div class="search-box" id="searchBox">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <input type="text" id="searchInput" placeholder="Search workshops…" autocomplete="off" />
+        <input type="text" id="searchInput" placeholder="Search place or workshop…" autocomplete="off" />
+        <button class="clear-btn" id="clearBtn" title="Clear search" aria-label="Clear search">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       <button class="sidebar-toggle" id="sidebarToggle" title="Toggle workshop list" aria-label="Toggle workshop list">
@@ -431,9 +502,11 @@
 
       <div class="error-msg" id="errorMsg">
         <strong>Could not load the 3D globe</strong><br><br>
-        Please open this file via a local server or host it online (GitHub Pages / Netlify). Opening as a plain file:// page often blocks the map textures.
+        Please host this file online (GitHub Pages / Netlify) or open via a local server.
       </div>
     </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
@@ -447,16 +520,12 @@
     </aside>
   </div>
 
-  <!-- Full https URLs so it works when opened from disk or hosted -->
   <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
   <script src="https://unpkg.com/globe.gl@2.31.0/dist/globe.gl.min.js"></script>
 
   <script>
     // ============================================================
     //  EDIT WORKSHOP DATA HERE
-    //  Add a new line to add a workshop.
-    //  status = "completed" or "upcoming"
-    //  For Online workshops use lat: null, lng: null
     // ============================================================
     const WORKSHOPS = [
       { id: 1,  name: "Wareham, Dorset",              country: "England",        lat: 50.686,  lng: -2.110,  date: "14 May 2023",           status: "completed" },
@@ -512,21 +581,57 @@
       return '<svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg"><path fill="' + color + '" d="M12 0C5.4 0 0 5.4 0 12c0 7.2 12 24 12 24s12-16.8 12-24C24 5.4 18.6 0 12 0z"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg>';
     }
 
-    // ---------- List (always works, even if globe fails) ----------
+    // ---------- Search ----------
+    const searchInput = document.getElementById("searchInput");
+    const searchBox = document.getElementById("searchBox");
+    const clearBtn = document.getElementById("clearBtn");
+
+    function updateClearBtn() {
+      if (searchInput.value.trim()) {
+        searchBox.classList.add("has-text");
+      } else {
+        searchBox.classList.remove("has-text");
+      }
+    }
+
+    searchInput.addEventListener("input", function () {
+      updateClearBtn();
+      renderList();
+    });
+
+    searchInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        renderList();
+        // Optionally open first result
+        const first = document.querySelector(".workshop-item");
+        if (first) first.click();
+      }
+    });
+
+    clearBtn.addEventListener("click", function () {
+      searchInput.value = "";
+      updateClearBtn();
+      renderList();
+      searchInput.focus();
+    });
+
+    // ---------- List ----------
     function renderList() {
       const list = document.getElementById("workshopList");
       if (!list) return;
 
-      const q = (document.getElementById("searchInput")?.value || "").trim().toLowerCase();
+      const q = (searchInput.value || "").trim().toLowerCase();
       let items = WORKSHOPS.filter(w => w.status === currentTab);
 
       if (q) {
-        items = items.filter(w =>
-          w.name.toLowerCase().includes(q) ||
-          (w.country && w.country.toLowerCase().includes(q)) ||
-          String(w.id).includes(q) ||
-          w.date.toLowerCase().includes(q)
-        );
+        items = items.filter(w => {
+          const name = (w.name || "").toLowerCase();
+          const country = (w.country || "").toLowerCase();
+          const date = (w.date || "").toLowerCase();
+          const full = name + " " + country + " " + date;
+          return full.includes(q) || String(w.id).includes(q);
+        });
       }
 
       if (items.length === 0) {
@@ -559,13 +664,17 @@
 
       if (globe && w.lat !== null && w.lng !== null) {
         globe.pointOfView({ lat: w.lat, lng: w.lng, altitude: 1.5 }, 1100);
-        // refresh pins active state
         const pinData = WORKSHOPS.filter(x => x.lat !== null);
         globe.htmlElementsData([...pinData]);
       }
 
       showInfoCard(w);
       renderList();
+
+      // On mobile, close sidebar after selecting so popup is visible
+      if (window.innerWidth <= 768 && sidebarOpen) {
+        closeSidebar();
+      }
     }
 
     function showInfoCard(w) {
@@ -576,8 +685,14 @@
       badge.textContent = w.status === "upcoming" ? "Upcoming" : "Completed";
       badge.className = "status-badge " + w.status;
       card.classList.add("visible");
-      card.style.left = "42%";
-      card.style.top = "26%";
+
+      // Desktop: place near center-right of globe area
+      // Mobile: CSS forces top-center
+      if (window.innerWidth > 768) {
+        card.style.left = "42%";
+        card.style.top = "24%";
+        card.style.transform = "none";
+      }
     }
 
     document.getElementById("closeCard").addEventListener("click", function () {
@@ -600,40 +715,49 @@
       });
     });
 
-    // Search
-    document.getElementById("searchInput").addEventListener("input", renderList);
-
-    // Sidebar toggle – always works
+    // Sidebar
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("sidebarToggle");
+    const overlay = document.getElementById("sidebarOverlay");
+
+    function openSidebar() {
+      sidebarOpen = true;
+      sidebar.classList.remove("collapsed");
+      if (window.innerWidth <= 768) overlay.classList.add("visible");
+      setTimeout(resizeGlobe, 300);
+    }
+
+    function closeSidebar() {
+      sidebarOpen = false;
+      sidebar.classList.add("collapsed");
+      overlay.classList.remove("visible");
+      setTimeout(resizeGlobe, 300);
+    }
 
     toggleBtn.addEventListener("click", function () {
-      sidebarOpen = !sidebarOpen;
-      if (sidebarOpen) {
-        sidebar.classList.remove("collapsed");
-      } else {
-        sidebar.classList.add("collapsed");
-      }
-      // resize globe after animation
-      setTimeout(function () {
-        if (globe) {
-          const el = document.getElementById("globeViz");
-          const rect = el.getBoundingClientRect();
-          globe.width(rect.width).height(rect.height);
-        }
-      }, 300);
+      if (sidebarOpen) closeSidebar();
+      else openSidebar();
     });
 
-    // Start with sidebar open on desktop, closed on mobile
+    overlay.addEventListener("click", closeSidebar);
+
     if (window.innerWidth <= 768) {
       sidebarOpen = false;
       sidebar.classList.add("collapsed");
     }
 
-    // Always render the list immediately
     renderList();
 
     // ---------- Globe ----------
+    function resizeGlobe() {
+      if (!globe) return;
+      const el = document.getElementById("globeViz");
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        globe.width(rect.width).height(rect.height);
+      }
+    }
+
     function initGlobe() {
       if (typeof Globe === "undefined" || typeof THREE === "undefined") {
         document.getElementById("loading").classList.add("hidden");
@@ -658,6 +782,7 @@
           .htmlElement(function (d) {
             const el = document.createElement("div");
             el.className = "map-pin" + (activeId === d.id ? " active" : "");
+            el.style.zIndex = "1";
             el.innerHTML = pinSVG(d.status === "upcoming" ? "#16a34a" : "#e11d48");
             el.style.pointerEvents = "auto";
             el.addEventListener("click", function (e) {
@@ -670,19 +795,11 @@
 
         globe.pointOfView({ lat: 25, lng: 10, altitude: 2.0 }, 0);
 
-        function resize() {
-          const rect = container.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
-            globe.width(rect.width).height(rect.height);
-          }
-        }
-
-        window.addEventListener("resize", resize);
-        // Multiple resize attempts to catch layout settling
-        resize();
-        setTimeout(resize, 100);
-        setTimeout(resize, 400);
-        setTimeout(resize, 1000);
+        window.addEventListener("resize", resizeGlobe);
+        resizeGlobe();
+        setTimeout(resizeGlobe, 100);
+        setTimeout(resizeGlobe, 400);
+        setTimeout(resizeGlobe, 1000);
 
         document.getElementById("loading").classList.add("hidden");
       } catch (err) {
@@ -692,19 +809,13 @@
       }
     }
 
-    // Wait for libraries, then init
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", function () {
-        setTimeout(initGlobe, 50);
-      });
+      document.addEventListener("DOMContentLoaded", function () { setTimeout(initGlobe, 50); });
     } else {
       setTimeout(initGlobe, 50);
     }
 
-    // Fallback if scripts take longer
-    setTimeout(function () {
-      if (!globe) initGlobe();
-    }, 2000);
+    setTimeout(function () { if (!globe) initGlobe(); }, 2000);
   </script>
 </body>
 </html>
