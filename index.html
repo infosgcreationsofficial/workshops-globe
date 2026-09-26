@@ -13,51 +13,79 @@
       --panel: #ffffff;
       --panel-border: #d0e0ef;
       --accent: #e11d48;
-      --accent-soft: #fb7185;
       --text: #1e293b;
       --text-muted: #64748b;
       --upcoming: #16a34a;
-      --globe-bg: #c5dcec;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
+    html, body {
+      height: 100%;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
-      height: 100vh;
       overflow: hidden;
     }
 
     .app {
       display: flex;
-      height: 100vh;
+      height: 100%;
+      width: 100%;
       position: relative;
     }
 
     /* Globe area */
     .globe-wrap {
-      flex: 1;
+      flex: 1 1 auto;
       position: relative;
       background: radial-gradient(ellipse at center, #d6eaf8 0%, #b8d4ea 60%, #9fc4e0 100%);
       min-width: 0;
+      min-height: 0;
     }
 
     #globeViz {
       width: 100%;
       height: 100%;
+      display: block;
     }
+
+    .loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      color: #475569;
+      font-size: 14px;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .loading.hidden { display: none; }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #cbd5e1;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Search */
     .search-box {
       position: absolute;
       top: 16px;
       left: 16px;
-      z-index: 15;
+      z-index: 30;
       display: flex;
       align-items: center;
-      background: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.97);
       border: 1px solid var(--panel-border);
       border-radius: 12px;
       padding: 10px 14px;
@@ -90,13 +118,13 @@
       position: absolute;
       top: 16px;
       right: 16px;
-      z-index: 20;
-      width: 42px;
-      height: 42px;
+      z-index: 40;
+      width: 44px;
+      height: 44px;
       border-radius: 12px;
       background: #fff;
       border: 1px solid var(--panel-border);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -107,32 +135,26 @@
     .sidebar-toggle:hover { background: #f1f5f9; }
 
     .sidebar-toggle svg {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       color: var(--text);
     }
 
     /* Info popup */
     .info-card {
       position: absolute;
-      z-index: 16;
+      z-index: 35;
       background: #fff;
       color: #0f172a;
       border-radius: 12px;
       padding: 14px 16px;
       min-width: 200px;
-      max-width: 260px;
+      max-width: 270px;
       box-shadow: 0 12px 36px rgba(0,0,0,0.18);
       display: none;
-      animation: fadeIn 0.18s ease;
     }
 
     .info-card.visible { display: block; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
 
     .info-card .close {
       position: absolute;
@@ -199,24 +221,24 @@
 
     .map-pin svg { width: 100%; height: 100%; }
 
-    /* Sidebar – collapsible */
+    /* Sidebar */
     .sidebar {
       width: 340px;
+      max-width: 100%;
       background: var(--panel);
       border-left: 1px solid var(--panel-border);
       display: flex;
       flex-direction: column;
       flex-shrink: 0;
-      transition: transform 0.3s ease, width 0.3s ease;
+      transition: transform 0.28s ease, margin 0.28s ease;
       z-index: 25;
       box-shadow: -4px 0 24px rgba(0,0,0,0.06);
+      height: 100%;
     }
 
     .sidebar.collapsed {
       transform: translateX(100%);
-      width: 0;
-      border: none;
-      overflow: hidden;
+      margin-right: -340px;
     }
 
     .sidebar-header {
@@ -228,7 +250,6 @@
     .sidebar-header h2 {
       font-size: 18px;
       font-weight: 700;
-      letter-spacing: -0.3px;
     }
 
     .tabs {
@@ -266,17 +287,17 @@
       flex: 1;
       overflow-y: auto;
       padding: 8px 10px 20px;
+      -webkit-overflow-scrolling: touch;
     }
 
     .list-wrap::-webkit-scrollbar { width: 5px; }
-    .list-wrap::-webkit-scrollbar-track { background: transparent; }
     .list-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
     .workshop-item {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 10px;
+      padding: 10px;
       border-radius: 10px;
       cursor: pointer;
       transition: background 0.15s;
@@ -290,6 +311,10 @@
       width: 18px;
       height: 24px;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
     }
 
     .workshop-item .pin-icon svg { width: 100%; height: 100%; }
@@ -310,10 +335,6 @@
       margin-top: 2px;
     }
 
-    .workshop-item.online .pin-icon {
-      opacity: 0.5;
-    }
-
     .empty-state {
       text-align: center;
       padding: 40px 16px;
@@ -327,7 +348,7 @@
       left: 16px;
       font-size: 11.5px;
       color: #475569;
-      background: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.9);
       padding: 5px 12px;
       border-radius: 8px;
       z-index: 10;
@@ -335,15 +356,32 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
+    .error-msg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px 28px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      text-align: center;
+      max-width: 320px;
+      z-index: 50;
+      display: none;
+    }
+
+    .error-msg.visible { display: block; }
+
     /* Mobile */
     @media (max-width: 768px) {
       .sidebar {
-        position: absolute;
+        position: fixed;
         top: 0;
         right: 0;
         height: 100%;
-        width: min(320px, 88vw);
-        max-width: 340px;
+        width: min(320px, 90vw);
+        margin-right: 0 !important;
       }
 
       .sidebar.collapsed {
@@ -354,16 +392,7 @@
         width: calc(100% - 70px);
       }
 
-      .hint {
-        display: none;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .sidebar {
-        width: 100%;
-        max-width: 100%;
-      }
+      .hint { display: none; }
     }
   </style>
 </head>
@@ -371,6 +400,11 @@
 
   <div class="app">
     <div class="globe-wrap">
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div>Loading globe…</div>
+      </div>
+
       <div class="search-box">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -394,6 +428,11 @@
       </div>
 
       <div class="hint">Drag to rotate · Scroll to zoom · Click a pin</div>
+
+      <div class="error-msg" id="errorMsg">
+        <strong>Could not load the 3D globe</strong><br><br>
+        Please open this file via a local server or host it online (GitHub Pages / Netlify). Opening as a plain file:// page often blocks the map textures.
+      </div>
     </div>
 
     <aside class="sidebar" id="sidebar">
@@ -408,15 +447,16 @@
     </aside>
   </div>
 
+  <!-- Full https URLs so it works when opened from disk or hosted -->
   <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
   <script src="https://unpkg.com/globe.gl@2.31.0/dist/globe.gl.min.js"></script>
 
   <script>
     // ============================================================
     //  EDIT WORKSHOP DATA HERE
-    //  To add a new workshop: copy a line and change the values.
-    //  status must be "completed" or "upcoming"
-    //  For Online workshops set lat/lng to null (no pin on globe)
+    //  Add a new line to add a workshop.
+    //  status = "completed" or "upcoming"
+    //  For Online workshops use lat: null, lng: null
     // ============================================================
     const WORKSHOPS = [
       { id: 1,  name: "Wareham, Dorset",              country: "England",        lat: 50.686,  lng: -2.110,  date: "14 May 2023",           status: "completed" },
@@ -463,118 +503,21 @@
       { id: 42, name: "Copenhagen",                   country: "Denmark",        lat: 55.676,  lng: 12.568,  date: "9–15 May 2027",         status: "upcoming" },
     ];
 
-    // ─────────────────────────────────────────────
-    // State
-    // ─────────────────────────────────────────────
     let currentTab = "completed";
     let activeId = null;
     let sidebarOpen = true;
+    let globe = null;
 
-    // ─────────────────────────────────────────────
-    // Pin SVG
-    // ─────────────────────────────────────────────
-    function pinSVG(color = "#e11d48") {
-      return `
-        <svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg">
-          <path fill="${color}" d="M12 0C5.4 0 0 5.4 0 12c0 7.2 12 24 12 24s12-16.8 12-24C24 5.4 18.6 0 12 0z"/>
-          <circle cx="12" cy="12" r="5" fill="#fff"/>
-        </svg>`;
+    function pinSVG(color) {
+      return '<svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg"><path fill="' + color + '" d="M12 0C5.4 0 0 5.4 0 12c0 7.2 12 24 12 24s12-16.8 12-24C24 5.4 18.6 0 12 0z"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg>';
     }
 
-    // ─────────────────────────────────────────────
-    // Globe (only workshops with lat/lng)
-    // ─────────────────────────────────────────────
-    const globeContainer = document.getElementById("globeViz");
-    const pinData = WORKSHOPS.filter(w => w.lat !== null && w.lng !== null);
-
-    const globe = Globe()
-      .globeImageUrl("//unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
-      .bumpImageUrl("//unpkg.com/three-globe/example/img/earth-topology.png")
-      .backgroundColor("rgba(0,0,0,0)")
-      .showAtmosphere(true)
-      .atmosphereColor("#7eb8e0")
-      .atmosphereAltitude(0.15)
-      .htmlElementsData(pinData)
-      .htmlLat("lat")
-      .htmlLng("lng")
-      .htmlElement(d => {
-        const el = document.createElement("div");
-        el.className = "map-pin" + (activeId === d.id ? " active" : "");
-        el.innerHTML = pinSVG(d.status === "upcoming" ? "#16a34a" : "#e11d48");
-        el.style.pointerEvents = "auto";
-        el.addEventListener("click", (e) => {
-          e.stopPropagation();
-          selectWorkshop(d.id);
-        });
-        return el;
-      })
-      .htmlElementVisibilityModifier((el, isVisible) => {
-        el.style.opacity = isVisible ? 1 : 0;
-      })
-      (globeContainer);
-
-    globe.pointOfView({ lat: 25, lng: 10, altitude: 2.0 }, 0);
-
-    const resize = () => {
-      const { width, height } = globeContainer.getBoundingClientRect();
-      globe.width(width).height(height);
-    };
-    window.addEventListener("resize", resize);
-    resize();
-
-    function refreshGlobe() {
-      globe.htmlElementsData([...pinData]);
-    }
-
-    // ─────────────────────────────────────────────
-    // Select / Popup
-    // ─────────────────────────────────────────────
-    function selectWorkshop(id) {
-      const w = WORKSHOPS.find(x => x.id === id);
-      if (!w) return;
-      activeId = id;
-
-      if (w.lat !== null && w.lng !== null) {
-        globe.pointOfView({ lat: w.lat, lng: w.lng, altitude: 1.5 }, 1100);
-      }
-
-      showInfoCard(w);
-      refreshGlobe();
-      renderList();
-
-      // On mobile, optionally close sidebar after selection
-      if (window.innerWidth <= 768) {
-        // keep open so user can still browse
-      }
-    }
-
-    function showInfoCard(w) {
-      const card = document.getElementById("infoCard");
-      const title = w.country ? `${w.name}, ${w.country}` : w.name;
-      document.getElementById("cardTitle").textContent = title;
-      document.getElementById("cardDate").textContent = w.date;
-      const badge = document.getElementById("cardStatus");
-      badge.textContent = w.status === "upcoming" ? "Upcoming" : "Completed";
-      badge.className = "status-badge " + w.status;
-      card.classList.add("visible");
-      card.style.left = "45%";
-      card.style.top = "28%";
-      card.style.transform = "translateX(-10%)";
-    }
-
-    document.getElementById("closeCard").addEventListener("click", () => {
-      document.getElementById("infoCard").classList.remove("visible");
-      activeId = null;
-      refreshGlobe();
-      renderList();
-    });
-
-    // ─────────────────────────────────────────────
-    // Sidebar list
-    // ─────────────────────────────────────────────
+    // ---------- List (always works, even if globe fails) ----------
     function renderList() {
       const list = document.getElementById("workshopList");
-      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!list) return;
+
+      const q = (document.getElementById("searchInput")?.value || "").trim().toLowerCase();
       let items = WORKSHOPS.filter(w => w.status === currentTab);
 
       if (q) {
@@ -586,9 +529,6 @@
         );
       }
 
-      // Sort by date string roughly (newest first for completed, soonest for upcoming)
-      // Simple: keep original order which is roughly chronological
-
       if (items.length === 0) {
         list.innerHTML = '<div class="empty-state">No workshops found</div>';
         return;
@@ -597,30 +537,65 @@
       list.innerHTML = items.map(w => {
         const isOnline = w.lat === null;
         const color = w.status === "upcoming" ? "#16a34a" : "#e11d48";
-        return `
-          <div class="workshop-item ${activeId === w.id ? "active" : ""} ${isOnline ? "online" : ""}" data-id="${w.id}">
-            <div class="pin-icon">${isOnline ? '🌐' : pinSVG(color)}</div>
-            <div class="info">
-              <div class="name">${w.name}${w.country ? ', ' + w.country : ''}</div>
-              <div class="date">${w.date}</div>
-            </div>
-          </div>
-        `;
+        const pin = isOnline ? "🌐" : pinSVG(color);
+        const title = w.country ? w.name + ", " + w.country : w.name;
+        return '<div class="workshop-item' + (activeId === w.id ? " active" : "") + '" data-id="' + w.id + '">' +
+          '<div class="pin-icon">' + pin + '</div>' +
+          '<div class="info"><div class="name">' + title + '</div><div class="date">' + w.date + '</div></div>' +
+          '</div>';
       }).join("");
 
       list.querySelectorAll(".workshop-item").forEach(el => {
-        el.addEventListener("click", () => {
-          selectWorkshop(Number(el.dataset.id));
+        el.addEventListener("click", function () {
+          selectWorkshop(Number(el.getAttribute("data-id")));
         });
       });
     }
 
+    function selectWorkshop(id) {
+      const w = WORKSHOPS.find(x => x.id === id);
+      if (!w) return;
+      activeId = id;
+
+      if (globe && w.lat !== null && w.lng !== null) {
+        globe.pointOfView({ lat: w.lat, lng: w.lng, altitude: 1.5 }, 1100);
+        // refresh pins active state
+        const pinData = WORKSHOPS.filter(x => x.lat !== null);
+        globe.htmlElementsData([...pinData]);
+      }
+
+      showInfoCard(w);
+      renderList();
+    }
+
+    function showInfoCard(w) {
+      const card = document.getElementById("infoCard");
+      document.getElementById("cardTitle").textContent = w.country ? w.name + ", " + w.country : w.name;
+      document.getElementById("cardDate").textContent = w.date;
+      const badge = document.getElementById("cardStatus");
+      badge.textContent = w.status === "upcoming" ? "Upcoming" : "Completed";
+      badge.className = "status-badge " + w.status;
+      card.classList.add("visible");
+      card.style.left = "42%";
+      card.style.top = "26%";
+    }
+
+    document.getElementById("closeCard").addEventListener("click", function () {
+      document.getElementById("infoCard").classList.remove("visible");
+      activeId = null;
+      renderList();
+      if (globe) {
+        const pinData = WORKSHOPS.filter(x => x.lat !== null);
+        globe.htmlElementsData([...pinData]);
+      }
+    });
+
     // Tabs
-    document.querySelectorAll(".tab").forEach(tab => {
-      tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(function (tab) {
+      tab.addEventListener("click", function () {
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
-        currentTab = tab.dataset.tab;
+        currentTab = tab.getAttribute("data-tab");
         renderList();
       });
     });
@@ -628,25 +603,108 @@
     // Search
     document.getElementById("searchInput").addEventListener("input", renderList);
 
-    // Sidebar toggle
+    // Sidebar toggle – always works
     const sidebar = document.getElementById("sidebar");
     const toggleBtn = document.getElementById("sidebarToggle");
 
-    toggleBtn.addEventListener("click", () => {
+    toggleBtn.addEventListener("click", function () {
       sidebarOpen = !sidebarOpen;
-      sidebar.classList.toggle("collapsed", !sidebarOpen);
-      // Give globe a moment to resize
-      setTimeout(resize, 320);
+      if (sidebarOpen) {
+        sidebar.classList.remove("collapsed");
+      } else {
+        sidebar.classList.add("collapsed");
+      }
+      // resize globe after animation
+      setTimeout(function () {
+        if (globe) {
+          const el = document.getElementById("globeViz");
+          const rect = el.getBoundingClientRect();
+          globe.width(rect.width).height(rect.height);
+        }
+      }, 300);
     });
 
-    // On small screens start with sidebar closed
+    // Start with sidebar open on desktop, closed on mobile
     if (window.innerWidth <= 768) {
       sidebarOpen = false;
       sidebar.classList.add("collapsed");
     }
 
-    // Init
+    // Always render the list immediately
     renderList();
+
+    // ---------- Globe ----------
+    function initGlobe() {
+      if (typeof Globe === "undefined" || typeof THREE === "undefined") {
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("errorMsg").classList.add("visible");
+        return;
+      }
+
+      const container = document.getElementById("globeViz");
+      const pinData = WORKSHOPS.filter(w => w.lat !== null && w.lng !== null);
+
+      try {
+        globe = Globe()
+          .globeImageUrl("https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg")
+          .bumpImageUrl("https://unpkg.com/three-globe/example/img/earth-topology.png")
+          .backgroundColor("rgba(0,0,0,0)")
+          .showAtmosphere(true)
+          .atmosphereColor("#7eb8e0")
+          .atmosphereAltitude(0.15)
+          .htmlElementsData(pinData)
+          .htmlLat("lat")
+          .htmlLng("lng")
+          .htmlElement(function (d) {
+            const el = document.createElement("div");
+            el.className = "map-pin" + (activeId === d.id ? " active" : "");
+            el.innerHTML = pinSVG(d.status === "upcoming" ? "#16a34a" : "#e11d48");
+            el.style.pointerEvents = "auto";
+            el.addEventListener("click", function (e) {
+              e.stopPropagation();
+              selectWorkshop(d.id);
+            });
+            return el;
+          })
+          (container);
+
+        globe.pointOfView({ lat: 25, lng: 10, altitude: 2.0 }, 0);
+
+        function resize() {
+          const rect = container.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            globe.width(rect.width).height(rect.height);
+          }
+        }
+
+        window.addEventListener("resize", resize);
+        // Multiple resize attempts to catch layout settling
+        resize();
+        setTimeout(resize, 100);
+        setTimeout(resize, 400);
+        setTimeout(resize, 1000);
+
+        document.getElementById("loading").classList.add("hidden");
+      } catch (err) {
+        console.error(err);
+        document.getElementById("loading").classList.add("hidden");
+        document.getElementById("errorMsg").classList.add("visible");
+      }
+    }
+
+    // Wait for libraries, then init
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(initGlobe, 50);
+      });
+    } else {
+      setTimeout(initGlobe, 50);
+    }
+
+    // Fallback if scripts take longer
+    setTimeout(function () {
+      if (!globe) initGlobe();
+    }, 2000);
   </script>
 </body>
 </html>
